@@ -1,0 +1,61 @@
+name: Tag and Release package
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Extract version from package.json
+        id: pkg_version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+      - name: Pack package
+        env:
+          VERSION: ${{ steps.pkg_version.outputs.version }}
+        run: |
+          NAME=$(jq -r '.name | sub("^@[^/]+/"; "")' package.json)
+          PACKED_FILE=$(npm pack --json | jq -r '.[0].filename')
+          ASSET_NAME="${NAME}-${VERSION}.tgz"
+          if [ "${PACKED_FILE}" != "${ASSET_NAME}" ]; then
+            mv "${PACKED_FILE}" "${ASSET_NAME}"
+          fi
+
+      - name: Create release and upload package
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.pkg_version.outputs.version }}
+          name: Release v${{ steps.pkg_version.outputs.version }}
+          files: "*.tgz"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
