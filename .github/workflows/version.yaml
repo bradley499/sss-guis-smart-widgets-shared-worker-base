@@ -1,0 +1,36 @@
+name: Verify version has incremented
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  version_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify version has incremented
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          NEW=$(jq -r .version package.json)
+          OLD=$(git show "origin/${BASE_REF}:package.json" | jq -r .version)
+          echo "Comparing $NEW to $OLD..."
+          if [ -z "$NEW" ] || [ "$NEW" = "null" ] || [ -z "$OLD" ] || [ "$OLD" = "null" ]; then
+            echo "::error::Failed to read version from package.json (NEW=$NEW, OLD=$OLD)."
+            exit 1
+          fi
+          if [ "$NEW" = "$OLD" ]; then
+            echo "::error::Version has not changed from v$NEW. Please increment package.json."
+            exit 1
+          fi
+          LATEST=$(printf "%s\n%s\n" "$OLD" "$NEW" | sort -V | tail -n1)
+          if [ "$LATEST" = "$NEW" ]; then
+            echo "v$NEW is greater than v$OLD"
+          else
+            echo "::error::Version regression! v$NEW is lower than v$OLD."
+            exit 1
+          fi

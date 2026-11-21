@@ -1,3 +1,34 @@
 {
-  "version": "0.0.0"
+  "name": "@sss/sss-guis-smart-widgets-shared-worker-base",
+  "version": "0.1.0",
+  "description": "SharedWorker base and abstract transport for SSS smart widgets",
+  "type": "module",
+  "main": "src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run --reporter=verbose"
+  },
+  "author": "Bradley Marshall",
+  "license": "MIT",
+  "dependencies": {
+    "nanoid": "^6.0.1",
+    "@sss/sss-guis-smart-widgets-common": "https://github.com/bradley499/sss-guis-smart-widgets-common/releases/download/v0.1.0/sss-guis-smart-widgets-common-0.1.0.tgz"
+  },
+  "devDependencies": {
+    "@sss/sss-guis-eslint": "github:bradley499/sss-guis-eslint",
+    "eslint": "^9.0.0",
+    "jiti": "^2.7.0",
+    "typescript": "^6.0.3",
+    "vitest": "4.1.8"
+  },
+  "overrides": {
+    "vite": "^7.3.8"
+  }
 }
