@@ -15,7 +15,11 @@ import {
 import { generateUniqueIdentifier, sharedWorker } from "./sharedWorker";
 import { transport } from "./transport";
 
-vi.mock("nanoid", async (importOriginal: () => Promise<typeof import("nanoid")>): Promise<typeof import("nanoid")> => {
+type nanoidMockModule = Omit<typeof import("nanoid"), "nanoid"> & {
+    nanoid: Mock<(size?: number) => string>;
+};
+
+vi.mock("nanoid", async (importOriginal: () => Promise<typeof import("nanoid")>): Promise<nanoidMockModule> => {
     const actual: typeof import("nanoid") = await importOriginal();
     const originalNanoid: (size?: number) => string = actual.nanoid;
     return {
